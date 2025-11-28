@@ -1,0 +1,16 @@
+{
+    "name": "youtube-transcript-analyzer",
+    "version": "1.0.0",
+    "main": "api/analyze.js",
+    "scripts": {
+        "dev" : "vercel dev"
+    },
+    "dependencies": {
+        "ytdl-core": "^4.11.5",
+        "fluent-ffmpeg": "^2.1.2",
+        "axios": "^1.7.2",
+        "@ffmpeg-installer/ffmpeg": "^1.1.0",
+        "form-data": "^4.0.0",
+        "dotenv": "^16.4.5"
+    }
+}

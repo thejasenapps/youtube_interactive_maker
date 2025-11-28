@@ -1,0 +1,21 @@
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "api/analyze.js",
+            "use": "@vercel/node"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/api/analyze",
+            "dest": "api/analyze.js"
+        }
+    ],
+    "functions": {
+        "api/analyze.js": {
+            "memory": 1024,
+            "maxDuration": 600
+        }
+    }
+}
