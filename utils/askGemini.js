@@ -1,37 +1,30 @@
-import axios from 'axios';
+import { generateWithGemini } from "./geminiClient.js";
 
 export const askGeminiQuestions = async (transcript) => {
   const prompt = `
-You are an expert educator. Based on the following YouTube video transcript, generate **exactly 3 insightful, high-quality questions** that test deep understanding of the content.
-
-Transcript:
-${transcript}
-
-Return only a JSON array like this:
-["Question 1?", "Question 2?", "Question 3?"]
+${transcript}\n\nGenerate question, multiple options and correct answer for the given videoId and for the given time interval using the following rules:
+1. Three questions that can be asked from the given transcript just after a particular topic is discussed
+2. All the values should be in one line
+3. Timestamp should be first, questions second and then multiple options and then answers, all separated by '-'
+4. There should be three options and all options should separated by '_'
+5. No other explanation or text is needed
   `.trim();
 
-  const response = await axios.post(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-    {
-      contents: [
-        {
-          parts: [
-            { text: prompt }
-          ]
-        }
-      ]
-    }
-  );
-
   try {
-    const text = response.data.candidates[0].content.parts[0].text;
-    const jsonMatch = text.match(/\[[\s\S]*\]/);
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]);
+    const output = await generateWithGemini(prompt, {
+      maxOutputTokens: 400,
+      temperature: 0.5
+    });
+
+    // Try parse JSON if model returned JSON; otherwise return raw output:
+    try {
+      return JSON.parse(output);
+    } catch {
+      return output;
     }
-    return ["Failed to parse questions"];
   } catch (err) {
-    return ["Error generating questions", err.message];
+    console.error("Gemini generation error:", err);
+    throw err;
   }
+
 };

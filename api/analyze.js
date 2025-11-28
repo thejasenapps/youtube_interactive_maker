@@ -1,51 +1,58 @@
+import fs from "fs";
 import { downloadYouTubeAudio } from "../utils/downloadAudio.js";
 import { transcribeWithGroq } from "../utils/transcribeWithGroq.js";
 import { askGeminiQuestions } from "../utils/askGemini.js";
-import { error } from "console";
 
 export default async function handler(req, res) {
-    if(req.method !== 'POST') {
-        return res.status(405).json({error: 'Method not allowed'});
+
+    if (req.method !== 'POST') {
+        return req.sendError("Method not allowed", 405);
     }
 
     const { videoId } = req.body;
 
-    if(!videoId || !videoId.match(/^[a-zA-Z0-9_-]{11}$/)) {
-        return res.status(400).json({error: 'Invalid YouTube video ID'});
+    if (!videoId || !videoId.match(/^[a-zA-Z0-9_-]{11}$/)) {
+        return req.sendError("Invalid YouTube video ID", 400);
     }
 
     try {
-        res.writeHead(200, {
-            'Content-Type': 'application/json',
-            'Transfer-Encoding': 'chunked',
-        });
-        res.write(JSON.stringify({status: 'Downloading audio...'}) + '\n');
+        req.sendChunk({ status: "Downloading audio..." });
 
         const audioPath = await downloadYouTubeAudio(videoId);
-        res.write(JSON.stringify({status: 'Transcribing audio...'}) + '\n');
+
+        req.sendChunk({ status: "Transcribing audio..." });
 
         const transcript = await transcribeWithGroq(audioPath);
-        res.write(JSON.stringify({status: 'Transcription complete, asking Gemini...'}) + '\n');
+
+        req.sendChunk({ status: "Transcription complete. Asking Gemini..." });
 
         const questions = await askGeminiQuestions(transcript);
 
-        if (fstat.existsSync(audioPath)) fs.unlinkSync(audioPath);
+        // Cleanup downloaded audio file
+        try {
+            if (fs.existsSync(audioPath)) fs.unlinkSync(audioPath);
+        } catch (cleanupErr) {
+            console.error("Failed to delete audio file:", cleanupErr);
+        }
+
+        // Build final output
+        const trimmedTranscript =
+            transcript && transcript.length > 2000
+                ? transcript.slice(0, 2000) + "..."
+                : transcript || "";
 
         const result = {
             videoId,
             youtubeUrl: `https://www.youtube.com/watch?v=${videoId}`,
-            transcript: transcript.slice(0, 2000) + (transcript.length > 2000 ? '...' : ''),
+            transcript: trimmedTranscript,
             questions,
             generatedAt: new Date().toISOString(),
         };
 
-        res.write(JSON.stringify(result) +'\n');
-        res.end();
-    } catch(error) {
-        console.error(error);
-        res.status(500).json({
-            error: 'Processing failed',
-            message: error.message,
-        });
+        req.endResponse(result);
+
+    } catch (err) {
+        console.error("Handler error:", err);
+        req.sendError("Processing failed: " + err.message);
     }
 }
