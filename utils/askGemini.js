@@ -1,6 +1,10 @@
 import { generateWithGemini } from "./geminiClient.js";
 
 export const askGeminiQuestions = async (transcript) => {
+  if (!transcript || transcript.trim().length === 0) {
+    throw new Error("Transcript is empty");
+  }
+  
   const prompt = `
 ${transcript}\n\nGenerate question, multiple options and correct answer for the given videoId and for the given time interval using the following rules:
 1. Three questions that can be asked from the given transcript just after a particular topic is discussed

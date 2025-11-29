@@ -17,5 +17,6 @@
             "memory": 1024,
             "maxDuration": 600
         }
-    }
+    },
+    "files": ["yt-dlp"]
 }
