@@ -1,7 +1,7 @@
 import fs from "fs";
 import axios from "axios";
 
-const FASTAPI_URL = "https://<your-railway-app>.up.railway.app/download";
+const FASTAPI_URL = "https://web-production-a3481.up.railway.app/download";
 
 export async function downloadYouTubeAudio(videoId) {
   const response = await axios.post(
