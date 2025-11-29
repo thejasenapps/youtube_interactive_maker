@@ -28,6 +28,8 @@ export default async function handler(req, res) {
 
         const questions = await askGeminiQuestions(transcript);
 
+        req.sendChunk({ status: "Processing complete", data: questions });
+
         // Cleanup downloaded audio file
         try {
             if (fs.existsSync(audioPath)) fs.unlinkSync(audioPath);

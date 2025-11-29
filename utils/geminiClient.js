@@ -25,14 +25,14 @@ export const generateWithGemini = async (
     }
   });
 
-   const res = await model.generateContent({
-    prompt: [{ text: prompt }]
-  });
+  console.log("Generating with Gemini model:", model.model);
+  console.log("Prompt:", prompt);
 
-  // Access the text from the response object
-  // SDK v0.9+ typically returns: res.candidates[0].content[0].text
-  const text = res?.candidates?.[0]?.content?.[0]?.text;
+  const res = await model.generateContent(prompt);
+
+  const text = res.response.text();
   if (!text) throw new Error("No content returned from Gemini");
+  console.log("Response text:", text);
 
   return text;
 };
