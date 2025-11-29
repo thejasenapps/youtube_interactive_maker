@@ -30,14 +30,12 @@ export default async function handler(req, res) {
 
         req.sendChunk({ status: "Processing complete", data: questions });
 
-        // Cleanup downloaded audio file
         try {
             if (fs.existsSync(audioPath)) fs.unlinkSync(audioPath);
         } catch (cleanupErr) {
             console.error("Failed to delete audio file:", cleanupErr);
         }
 
-        // Build final output
         const trimmedTranscript =
             transcript && transcript.length > 2000
                 ? transcript.slice(0, 2000) + "..."
