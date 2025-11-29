@@ -1,13 +1,18 @@
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv"
 import { downloadYouTubeAudio } from "../utils/downloadAudio.js";
 import { transcribeWithGroq } from "../utils/transcribeWithGroq.js";
 import { askGeminiQuestions } from "../utils/askGemini.js";
 
-export default async function handler(req, res) {
+dotenv.config();
+const app = express();
+app.use(cors());
+app.use(express.json());
 
-    if (req.method !== "POST") {
-        res.setHeader("Allow", ["POST"]);
-        return res.status(405).json({ error: "Method not allowed" });
-    }
+const PORT = process.env.PORT || 3000;
+
+app.post("/api/analyze", async (req, res) => {
 
     const { videoId } = req.body;
 
@@ -27,16 +32,22 @@ export default async function handler(req, res) {
                 ? transcript.slice(0, 2000) + "..."
                 : transcript || "";
 
-        return res.status(200).json({
+        res.json({
             videoId,
             youtubeUrl: `https://www.youtube.com/watch?v=${videoId}`,
             transcript: trimmedTranscript,
             questions,
             generatedAt: new Date().toISOString(),
-        })
+        });
 
     } catch (err) {
         console.error("Handler error:", err);
         res.status(500).json({ error: "Processing failed: " + err.message });
     }
-}
+    
+});
+
+
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});

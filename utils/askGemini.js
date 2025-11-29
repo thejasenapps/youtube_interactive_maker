@@ -20,7 +20,6 @@ ${transcript}\n\nGenerate question, multiple options and correct answer for the 
       temperature: 0.5
     });
 
-    // Try parse JSON if model returned JSON; otherwise return raw output:
     try {
       return JSON.parse(output);
     } catch {
